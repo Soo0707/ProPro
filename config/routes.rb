@@ -2,10 +2,14 @@ Rails.application.routes.draw do
   post "user/create"
   get "user/new_staff"
   get "user/new_student"
+  get "user/profile"
+  post "user/edit"
 
+  root "homescreen#show"
 
   resource :session
   resources :passwords, param: :token
+
   resources :courses, only: [:show, :new, :create] do
     member do
       get 'add_people'
@@ -18,14 +22,34 @@ Rails.application.routes.draw do
       member do
         patch :change_status
       end
-  end
 
-  resources :topics, only: [:index, :show, :edit, :update] do
-    member do
-      patch :change_status
+      resources :comments do
+        member do
+          patch 'soft_delete'
+        end
+      end
+    end
+
+    resources :topics, only: [:index, :show, :edit, :update] do
+      member do
+        patch :change_status
+      end
+    end
+  
+    resources :lecturers, only: [:index, :show] do
+      resources :topics, only: [:index, :show, :edit, :update] do
+        member do
+          patch :change_status
+        end
+      end
+    end
+
+    resource :project_template, only: [:new, :create, :edit, :update, :show] do
+      get 'new_field', on: :member
+      get 'new_option', on: :member
     end
   end
-end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

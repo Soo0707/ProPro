@@ -1,6 +1,8 @@
 class Course < ApplicationRecord
     has_many :enrolments
+    has_many :projects
     has_many :project_groups
+    has_one :project_template
 
     has_many :projects
     has_one :project_template
@@ -32,7 +34,7 @@ class Course < ApplicationRecord
     before_validation :null_number_of_updates_if_not_used
 
     def coordinator
-        self.enrolments.where(role: :coordinator)
+        self.enrolments.find_by(role: :coordinator)
     end
 
     def students

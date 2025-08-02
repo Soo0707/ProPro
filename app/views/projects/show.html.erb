@@ -73,8 +73,33 @@
 <p><% @lecturers %></p>
 
 
-
-
 <p>
   <%= link_to "Back to all proposals", course_projects_path(@course) %>
 </p>
+
+<div>
+  <h2>Comments</h2>
+  <% if @comments %>
+    <% @comments.each do |comment| %>
+      <div>
+        <h4><%= comment.user.username %></h4>
+        <% if !comment.deleted %>
+          <p><%= comment.text %></p>
+          <% if Current.user == comment.user %>
+            <%= link_to "X", soft_delete_course_project_comment_path(@course, @project, comment), data: { turbo_method: :patch } %>
+          <% end %>
+        <% else %>
+          <p>This comment was deleted</p>
+        <% end %>
+      </div>
+      <% end %>
+  <% else %>
+    <p>There are no comments<p>
+  <% end %>
+
+  <%= form_with model:[@course, @project, @new_comment] do |form| %>
+    <%= form.label :user_comment, "Your Comment" %>
+    <%= form.text_area :user_comment %>
+    <%= form.submit "Post Comment" %>
+  <% end %>
+</div>

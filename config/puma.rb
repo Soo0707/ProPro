@@ -59,4 +59,3 @@ enable_keep_alives(false) if respond_to?(:enable_keep_alives)
 
 rackup      DefaultRackup if defined?(DefaultRackup)
 environment ENV['RACK_ENV'] || 'development'
-

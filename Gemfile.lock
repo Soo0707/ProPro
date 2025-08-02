@@ -117,7 +117,7 @@ GEM
       activesupport (>= 6.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    importmap-rails (2.2.0)
+    importmap-rails (2.2.2)
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
       railties (>= 6.0.0)
@@ -204,11 +204,11 @@ GEM
       date
       stringio
     public_suffix (6.0.2)
-    puma (6.6.0)
+    puma (6.6.1)
       nio4r (~> 2.0)
     raabro (1.4.0)
     racc (1.8.1)
-    rack (3.1.16)
+    rack (3.2.0)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -254,7 +254,7 @@ GEM
     reline (0.6.2)
       io-console (~> 0.5)
     rexml (3.4.1)
-    rubocop (1.79.0)
+    rubocop (1.79.1)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
@@ -264,7 +264,6 @@ GEM
       regexp_parser (>= 2.9.3, < 3.0)
       rubocop-ast (>= 1.46.0, < 2.0)
       ruby-progressbar (~> 1.7)
-      tsort (>= 0.2.0)
       unicode-display_width (>= 2.4.0, < 4.0)
     rubocop-ast (1.46.0)
       parser (>= 3.3.7.2)
@@ -323,7 +322,6 @@ GEM
     thruster (0.1.14-aarch64-linux)
     thruster (0.1.14-x86_64-linux)
     timeout (0.4.3)
-    tsort (0.2.0)
     turbo-rails (2.0.16)
       actionpack (>= 7.1.0)
       railties (>= 7.1.0)
@@ -354,7 +352,6 @@ PLATFORMS
   aarch64-linux-musl
   arm-linux-gnu
   arm-linux-musl
-  x86_64-linux
   x86_64-linux-gnu
   x86_64-linux-musl
 
