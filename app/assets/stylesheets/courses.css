@@ -1,120 +1,3 @@
-h1 {
-    font-size: 30px;
-    font-weight: bold;
-    color: #000000;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-h2 {
-    font-size: 12px;
-    font-weight: normal;
-    color: #7e7e7e;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-h3 {
-    font-size: 16px;
-    font-weight: normal;
-    color: #7e7e7e;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-h4 {
-    font-size: 20px;
-    font-weight: normal;
-    color: #000000;
-    margin-top: 0px;
-    margin-bottom: 10px;
-}
-
-h5 {
-    font-size: 12px;
-    font-weight: normal;
-    color: #ff2b2b;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-p {
-    font-size: 12px;
-    color: #000000;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    font-weight: bold;
-}
-
-/* forms (keith) */
-
-input[type="text"],
-select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 10px;
-    margin-bottom: 10px;
-}
-
-textarea {
-    width: 100%;
-    height: 100px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 10px;
-    margin-top: 10px;
-}
-
-label {
-    font-size: 10px;
-    color: #000000;
-    margin-bottom: 5px;
-    align-items: center;
-}
-
-input[type="submit"] {
-    background-color: #dfdfdf;
-    color: rgb(0, 0, 0);
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 10px;
-}
-
-/* others */
-
-@media screen and (max-height: 450px) {
-    .sidebar {
-        padding-top: 15px;
-    }
-
-    .sidebar a {
-        font-size: 18px;
-    }
-}
-
-.rounded-add-button
-{
-    background-color: green;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    text-align: center;
-    display: inline-block;
-    text-decoration: none;
-    color: white;
-    line-height: 50px;
-    position: fixed;
-    bottom: 50px;
-    right: 50px;
-}
-=======
 body {
     background-color: #efefef;
     font-family: 'Inter', sans-serif;
@@ -130,6 +13,7 @@ body {
     left: 0;
     width: 100%;
     height: 70px;
+    z-index: 5;
 }
 
 .topbar a {
@@ -151,6 +35,7 @@ body {
     left: 0px;
     height: 36px;
     width: 100%;
+    z-index: 5;
 }
 
 .breadcrumb a {
@@ -487,7 +372,7 @@ ul.breadcrumb li b {
 .project-card b {
     margin-left: 30px;
     top: 10px;
-    vertical-align: middle
+    vertical-align: middle;
     color: #ffffff;
     font-weight: normal;
     flex: 1;
