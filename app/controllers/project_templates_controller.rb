@@ -84,6 +84,5 @@ before_action :set_project_template
         end
       end
     end
-    params
   end
 end
