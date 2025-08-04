@@ -7,8 +7,9 @@
 
 <body>
     <div class="main">
-        <h1><%= @course.course_name %></h1>
         <h3>Project Settings</h3>
+        <h1><%= @course.course_name %></h1>
+        <h3>This course is: <%= @course.grouped ? "Grouped" : "Individual" %></h3>
         <br>
 
         <div class="container">
@@ -28,7 +29,7 @@
             </div>
             <% end %>
 
-            <p>Project description</p>
+            <p>Project details</p>
             <%= form.text_area :course_description %>
             <br>
 

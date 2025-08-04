@@ -1,4 +1,5 @@
 <html>
+
 <head>
     <style>
         html,
@@ -13,12 +14,14 @@
             font-family: 'Inter', sans-serif;
             box-sizing: border-box;
         }
+
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
+
         .container {
             background: #f8f9fa;
             border-radius: 16px;
@@ -30,6 +33,7 @@
             flex-direction: column;
             align-items: center;
         }
+
         .topbar {
             background-color: #e1e1e1;
             border-radius: 16px 16px 0 0;
@@ -40,10 +44,12 @@
             justify-content: center;
             margin-bottom: 24px;
         }
+
         .main {
             margin: 0 auto;
             padding: 24px 24px 24px 24px;
         }
+
         .otp {
             border-radius: 8px;
             border: 1px solid;
@@ -59,12 +65,14 @@
             letter-spacing: 2px;
             color: #000000;
         }
+
         h1 {
             color: #000000;
             font-size: 24px;
             margin: 0;
             text-align: center;
         }
+
         p {
             text-align: center;
             font-size: 16px;
@@ -73,6 +81,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="topbar">
@@ -88,11 +97,12 @@
             </div>
             <br>
             <p>
-            To claim your account visit: propro.click/user/new_staff?token=<%= @otp_token %>
+            To claim your account visit <a href="https://propro.click/user/new_staff?token=<%= @otp_token %>">this link</a>
             </p>
             <br>
             <p><strong>Do not share this information with a third-party.</strong></p>
         </div>
     </div>
 </body>
+
 </html>

@@ -2,11 +2,19 @@ class TopicsController < ApplicationController
 
 before_action :access_one
 
+def index
+  redirect_to course_path(@course)
+end
+
+
 def show
 
   @instances = @project.project_instances.order(version: :desc)
   @owner = @project.ownership&.owner
   @status = @project.status
+  @comments = @project.comments
+  @new_comment = Comment.new
+
 
   @type = @project.ownership&.ownership_type
 
@@ -125,18 +133,9 @@ end
 def create
   enrolment = Enrolment.find_by(user: current_user, course: @course)
 
-  @course = Course.find(params[:course_id])
-
-  # Create enrolment for current_user as lecturer (if not already enrolled)
-  @enrolment = Enrolment.find_or_create_by!(
-    user: current_user,
-    course: @course,
-    role: enrolment&.role
-  )
-
   # Create ownership with current_user as the owner
   @ownership = Ownership.find_or_create_by!(
-    owner: @enrolment.user,
+    owner: enrolment.user,
     ownership_type: :lecturer
   )
 
@@ -146,7 +145,7 @@ def create
   # Create project with valid enrolment and ownership
   @project = Project.create!(
     course: @course,
-    enrolment: @enrolment,
+    enrolment: @course.coordinator,
     ownership: @ownership,
     status: status
   )
@@ -186,10 +185,6 @@ end
 
 
 private 
-
-  def index
-
-  end
 
 
   def access_one
