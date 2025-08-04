@@ -1,6 +1,7 @@
 class ProjectTemplateField < ApplicationRecord
   belongs_to :project_template
-
+  has_many   :project_instance_fields, dependent: :restrict_with_error
+  
   enum :field_type, {shorttext: 0, textarea: 1, dropdown: 2, radio: 3}
   enum :applicable_to, {topics: 0, proposals: 1, both: 2}
 
@@ -9,4 +10,3 @@ class ProjectTemplateField < ApplicationRecord
   validates :applicable_to, presence: true
   validates :options, presence: true, if: -> { field_type.in?(['dropdown', 'radio']) }
 end
-
