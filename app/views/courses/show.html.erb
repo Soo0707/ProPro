@@ -8,7 +8,7 @@
 </head>
 
 <body>
-  <%= render 'topbar', user: current_user %>
+  <%= render 'topbar', user: current_user, course: @course %>
   <%= render 'breadcrumb' %>
 
   <div class="sidebar">
@@ -16,11 +16,6 @@
     <a href="#proposal-status">Proposal Status</a>
     <a href="#supervisors-available">Supervisors Available</a>
     <a href="#group-members">Group Members</a>
-
-    <% if current_user == @course.coordinator.user %>
-      <%= link_to "Edit Course", settings_course_path(@course) %>
-      <%= link_to "Setup Course Template", new_course_project_template_path(@course) %>
-    <% end %>
   </div>
 
   <div class="main">
@@ -134,6 +129,9 @@
             <h4>My Topics</h4>
             <div class="section-actions">
               <%= link_to "View All Lecturer Topics", course_topics_path(@course), class: "btn btn-secondary" %>
+              <% if @current_user_enrolment&.lecturer? || @current_user_enrolment&.coordinator?  %>
+                <%= link_to "Create Topics", new_course_topic_path(@course), class: "btn btn-secondary" %>
+              <% end %>
             </div>
             <p class="section-description">Topics you have created for this course</p>
           </header>
@@ -162,7 +160,7 @@
           <div class="project-list-gapper">
             <div class="cards-container">
               <% assigned_proposals = @course.projects.includes(:ownership, :supervisor_enrolment)
-                                             .where(status: 'pending', supervisor_enrolment: current_user_enrolment)
+                                             .where(status: 'pending', supervisor_enrolment: @current_user_enrolment)
                                              .joins(:ownership)
                                              .where.not(ownerships: { ownership_type: Ownership.ownership_types[:lecturer] }) %>
               <% if assigned_proposals.any? %>

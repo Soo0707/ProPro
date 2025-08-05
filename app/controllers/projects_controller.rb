@@ -16,7 +16,13 @@ def show
   @new_comment = Comment.new
 
 
-  @type = @project.ownership&.ownership_type
+  user_type = @project.ownership&.ownership_type
+
+  if user_type == "lecturer"
+    @type = "topic"
+  else
+    @type = "proposal"
+  end
 
   @lecturers = @course.enrolments.where(role: [:lecturer, :coordinator]).includes(:user).map(&:user)
 
@@ -221,10 +227,6 @@ def check_existing_project
   end
 end
 
-
-
-private 
-
 private
 
 # make sure that same logic in helpers/projects_helper.rb
@@ -287,3 +289,5 @@ def access
   return redirect_to(course_path(@course), alert: "You are not authorized") unless authorized
 end
 end
+
+
