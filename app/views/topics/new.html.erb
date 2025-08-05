@@ -1,34 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
 
-<h1>Create Topic for <%= @course.course_name %></h1>
+<head>
+    <%= stylesheet_link_tag "courses" %>
+</head>
 
-<%= form_with url: course_topics_path(@course), method: :post do %>
-  <% @template_fields.each do |field| %>
-    <div class="field">
-      <%= label_tag "fields_#{field.id}", field.label %>
+<body>
+    <div class="main">
+        <h1><%= @course.course_name %></h1>
+        <h3>Create Topic</h3>
+        <br>
 
-      <% case field.field_type when "shorttext" %>
-        <%= text_field_tag "fields[#{field.id}]", nil, class: "form-control", placeholder: field.hint, required: true %>
-      <% when "textarea" %>
-        <%= text_area_tag "fields[#{field.id}]", nil, class: "form-control", placeholder: field.hint, required: true %>
-      <% when "dropdown" %>
-        <%= select_tag "fields[#{field.id}]",
+        <div class="container">
+            <%= form_with url: course_topics_path(@course), method: :post do %>
+            <% @template_fields.each do |field| %>
+            <div class="field">
+                <%= label_tag "fields_#{field.id}", field.label %>
+
+                <% case field.field_type when "shorttext" %>
+                <%= text_field_tag "fields[#{field.id}]", nil, class: "form-control", placeholder: field.hint, required: true %>
+                <% when "textarea" %>
+                <%= text_area_tag "fields[#{field.id}]", nil, class: "form-control", placeholder: field.hint, required: true %>
+                <% when "dropdown" %>
+                <%= select_tag "fields[#{field.id}]",
       options_for_select(
         field.options.to_s.gsub(/[\[\]]/, '').split(',').map(&:strip)
       ),
       prompt: "Select an option",class: "form-control", required: true %>
-      <% when "radio" %>
-        <% field.options.to_s.gsub(/[\[\]]/, '').split(',').map(&:strip).each_with_index do |option, idx| %>
-          <%= radio_button_tag "fields[#{field.id}]", option, false, id: "field_#{field.id}_#{idx}", required: true %>
-          <%= label_tag "field_#{field.id}_#{idx}", option %>
-        <% end %>
-      <% else %>
-        <%= text_field_tag "fields[#{field.id}]", nil, class: "form-control", required: true %>
-      <% end %>
+                <% when "radio" %>
+                <% field.options.to_s.gsub(/[\[\]]/, '').split(',').map(&:strip).each_with_index do |option, idx| %>
+                <%= radio_button_tag "fields[#{field.id}]", option, false, id: "field_#{field.id}_#{idx}", required: true %>
+                <%= label_tag "field_#{field.id}_#{idx}", option %>
+                <% end %>
+                <% else %>
+                <%= text_field_tag "fields[#{field.id}]", nil, class: "form-control", required: true %>
+                <% end %>
+            </div>
+            <% end %>
+            <%= submit_tag "Create Topic" %>
+            <% end %>
+        </div>
+        <br>
+            <p>
+                <%= link_to "Back to Topics", course_path(@course) %>
+            </p>
     </div>
-  <% end %>
-  <%= submit_tag "Create Topic" %>
-<% end %>
-
-<p>
-  <%= link_to "Back to Topics", course_path(@course) %>
-</p>
+</body>

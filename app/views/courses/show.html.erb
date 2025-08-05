@@ -12,7 +12,7 @@
   <%= render 'breadcrumb' %>
 
   <div class="sidebar">
-    <a href="#proposal-guidelines">Proposal Guidelines</a>
+    <a href="#proposal-guidelines">Project Details</a>
     <a href="#proposal-status">Proposal Status</a>
     <a href="#supervisors-available">Supervisors Available</a>
     <a href="#group-members">Group Members</a>
@@ -32,7 +32,7 @@
     <section class="proposal-guidelines" id="proposal-guidelines">
       <div class="container">
         <form>
-          <h4>Proposal Guidelines</h4>
+          <h4>Project Details</h4>
           <h2><%= @description || "No description available for this course." %></h2>
         </form>
       </div>
@@ -204,7 +204,7 @@
     <section class="participants" id="participants">
       <div class="container">
         <h4>Participants</h4>
-        <ul class="participants">
+        <ul class="participants-container">
           <li class="participants-block">
             <avatar>C</avatar>
             <name>Mr. Chiam Juin Hoong</name>
