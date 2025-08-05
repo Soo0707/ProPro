@@ -23,6 +23,8 @@ class CommentsController < ApplicationController
           whitelist.push(group_member.user)
         end
       end
+    elsif type == :lecturer
+      whitelist.push(parent_project.owner)
     end
 
     unless whitelist.include? Current.user
