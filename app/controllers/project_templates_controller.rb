@@ -4,46 +4,35 @@ class ProjectTemplatesController < ApplicationController
 
   def new
     if @course.project_template
-      @project_template = @course.project_template 
+      redirect_to edit_course_project_template_path(@course)
     else
       @project_template = @course.build_project_template
-      @project_template.project_template_fields.build(
-        label: "Project Title",
-        field_type: "shorttext",
-        applicable_to: "both"
-      )
     end
   end
 
   def create 
+    return redirect_to edit_course_project_template_path(@course) if @course.project_template
+
     @project_template = @course.build_project_template(project_template_params)
     if @project_template.save
-      redirect_to edit_course_project_template_path(@course)
+      redirect_to edit_course_project_template_path(@course), notice: "Template created"
     else
       render :new
-    end 
+    end
   end
 
   def update
-    safe_params = filter_undeletable_fields(project_template_params)
-
-    if @project_template.update(safe_params)
-      redirect_to edit_course_project_template_path(@course), notice: 'Template updated successfully.'
+    if @project_template.update(project_template_params)
+      redirect_to edit_course_project_template_path(@course), notice: "Template updated"
     else
       render :edit
     end
+  rescue
+    render :edit
   end
 
   def edit
     @project_template = @course.project_template
-
-    if @project_template.project_template_fields.empty?
-      @project_template.project_template_fields.build(
-        label: "Project Title",
-        field_type: "shorttext",
-        applicable_to: "both"
-      )
-    end
   end
 
 
@@ -72,20 +61,6 @@ class ProjectTemplatesController < ApplicationController
     )
   end
 
-  def filter_undeletable_fields(params)
-    if params[:project_template_fields_attributes]
-      params[:project_template_fields_attributes].each do |key, field_attrs|
-        if field_attrs[:_destroy] == 'true' && field_attrs[:id].present?
-          field = ProjectTemplateField.find_by(id: field_attrs[:id])
-          if field && field.project_instance_fields.exists?
-            field_attrs[:_destroy] = 'false'
-            flash[:alert] = "Some fields could not be deleted because they're being used in existing projects."
-          end
-        end
-      end
-    end
-    params
-  end
 
   def access
     @course = Course.find(params[:course_id])
@@ -143,6 +118,4 @@ class ProjectTemplatesController < ApplicationController
     
     return redirect_to(course_path(@course), alert: "You are not authorized") unless authorized
   end
-
 end
-
