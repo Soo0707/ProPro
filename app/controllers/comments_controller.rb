@@ -19,7 +19,7 @@ class CommentsController < ApplicationController
     else
       group_members = ProjectGroup.find(parent_project.ownership.owner_id).project_group_members.map { |member| User.find(member.user_id) }
 
-      unless group_members.includes? Current.user || Current.user == parent_project.supervisor || Current.user == parent_course.coordinator.user
+      unless group_members.include? Current.user || Current.user == parent_project.supervisor || Current.user == parent_course.coordinator.user
         redirect_to "/"
         return
       end
