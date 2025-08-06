@@ -11,6 +11,11 @@ class ProjectTemplateField < ApplicationRecord
   validates :options, presence: true, if: -> { field_type.in?(['dropdown', 'radio']) }
 
   before_destroy :cannot_delete_if_in_use
+  
+  
+  def option_list
+    options.to_s.gsub(/[\[\]]/, '').split(',').map(&:strip)
+  end
 
   private
   def cannot_delete_if_in_use
@@ -19,4 +24,5 @@ class ProjectTemplateField < ApplicationRecord
       throw :abort
     end
   end
+
 end
