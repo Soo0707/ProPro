@@ -1,7 +1,7 @@
-html,  
+html,
 body {
   background-color: #F2F3F7;
-  font-family: 'Inter', sans-serif; 
+  font-family: 'Inter', sans-serif;
 }
 
 .h2 {
@@ -84,6 +84,7 @@ input:disabled {
   color: #9ca3af;
   cursor: not-allowed;
   background-color: #f9fafb;
+  opacity: 0.7;
 }
 
 .remove-field {
@@ -104,7 +105,7 @@ input:disabled {
 
 .field-row:hover  .remove-field,
 .field-row.focus-within .remove-field {
-  display: inline-flex;    
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
@@ -294,17 +295,17 @@ select {
 }
 
 #add-field-btn {
-  
+
   background: none;
   border: none;
-  color: #6b7280;          
-  font-size: 0.875rem;      
+  color: #6b7280;
+  font-size: 0.875rem;
   cursor: pointer;
-  padding: 0.5rem 0 0.5rem 1.5rem;    
-  text-align: left;         
+  padding: 0.5rem 0 0.5rem 1.5rem;
+  text-align: left;
 }
 #add-field-btn:hover {
-  color: #111827;           
+  color: #111827;
 }
 
 
@@ -322,17 +323,17 @@ select {
     grid-template-columns: 1fr;
     border-bottom: 1px solid #e5e7eb;
   }
-  
+
   .column {
     border-right: none;
     border-bottom: 1px solid #e5e7eb;
     padding: 0.5rem 1rem;
   }
-  
+
   .column:last-child {
     border-bottom: none;
   }
-  
+
   .remove-field {
     left: 6px;
     width: 18px;
