@@ -80,27 +80,48 @@ def change_status
 end
 
 def edit
+    has_coordinator_comment = Comment.where(
+      project: @project,
+      project_version_number: @project.project_instances.count,
+      user_id: @project.supervisor
+    ).exists?
+
 
   if @project.status == "pending" || (@project.status == "approved" && !@course.require_coordinator_approval)
     @instance = @project.project_instances.last || @project.project_instances.build
-  elsif @project.status == "rejected" || @project.status == "redo"
+
+    @existing_values = @instance.project_instance_fields.each_with_object({}) do |f, h|
+      h[f.project_template_field_id] = f.value
+    end
+  elsif @project.status == "rejected" || @project.status == "redo" || has_coordinator_comment
+
     # Create a new version
     version = @project.project_instances.maximum(:version).to_i + 1
     @instance = @project.project_instances.build(version: version, created_by: current_user)
+    
+    latest_instance = @project.project_instances.order(version: :desc).first
+    if latest_instance
+      @existing_values = latest_instance.project_instance_fields.each_with_object({}) do |f, h|
+        h[f.project_template_field_id] = f.value
+      end
+    else
+      {}
+    end
   else
     redirect_to course_topic_path(@course, @project), alert: "This project cannot be edited."
     return
   end
-
   @template_fields = @course.project_template.project_template_fields.where(applicable_to: [:topics, :both])
-
-  @existing_values = @instance.project_instance_fields.each_with_object({}) do |f, h|
-    h[f.project_template_field_id] = f.value
-  end
 end
 
 def update
-  if @project.status == "rejected" || @project.status == "redo"
+  has_coordinator_comment = Comment.where(
+    project: @project,
+    project_version_number: @project.project_instances.count,
+    user_id: @project.supervisor
+  ).exists?
+
+  if @project.status == "rejected" || @project.status == "redo" || has_coordinator_comment
     version = @project.project_instances.maximum(:version).to_i + 1
     @instance = @project.project_instances.build(version: version, created_by: current_user)
   else
