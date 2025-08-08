@@ -521,7 +521,7 @@ ul.breadcrumb li b {
 
 /* participants list (keith) */
 
-.participants {
+.participants-container {
     list-style: none;
     padding: 0;
     margin: 24px 0 0 0;

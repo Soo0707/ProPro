@@ -3,6 +3,7 @@
 
 <head>
     <%= stylesheet_link_tag "sessions" %>
+    <link rel="stylesheet" href="sessions.css">
 </head>
 
 <body>
@@ -32,9 +33,9 @@
             <br>
 
             <p>Students would work?</p>
-            <%= form.radio_button :grouped, "true", required: true %>
+            <%= form.radio_button :grouped, "true" %>
             <%= form.label :grouped, "In groups", value: true %>
-            <%= form.radio_button :grouped, "false", required: true %>
+            <%= form.radio_button :grouped, "false" %>
             <%= form.label :grouped, "By themselves", value: false %>
             <br>
 
@@ -43,5 +44,3 @@
         </div>
     </div>
 </body>
-
-</html>
