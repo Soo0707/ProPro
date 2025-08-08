@@ -28,34 +28,6 @@ body {
 }
 
 /* ============================================= */
-/* VERSION NAVIGATION SIDEBAR */
-/* ============================================= */
-
-.version-navigation {
-  width: 80px;
-  min-height: 100vh;
-  position: sticky;
-  top: 0;
-}
-
-.version-controls {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-}
-
-.version-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ============================================= */
 /* MAIN CONTENT AREA */
 /* ============================================= */
 
@@ -92,20 +64,23 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 0px;
-  width: 100%;
+  align-items: start;
 }
 
+
 .metadata-item {
-  min-height: 60px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 8px; 
 }
 
 .metadata-label {
   color: #454343;
   font-weight: 550;
   font-size: 16px;
+  text-align: left;
 }
 
 .metadata-label img {
@@ -115,68 +90,88 @@ body {
 }
 
 .metadata-value {
-  width: auto;        
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;       
+  text-align: left; 
+}
+
+.owner-metadata .metadata-value {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;        
+  align-items: flex-start;
 }
 
 .status-control {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-left: -13px;
+  gap: 8px;
 }
 
 .status-change-form {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.status-arrow-btn {
-  background: none;
-  border: none;
-  padding: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.status-select {
+  padding: 4px 8px;
+  font-size: 0.875rem;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  transition: all 0.15s ease-in-out;
+  background: white;
 }
 
-.status-arrow-btn:hover:not(.disabled) {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.status-arrow-btn.disabled {
-  opacity: 0;
-  cursor: not-allowed;
-}
-
-.status-arrow-btn img {
+.status-save-btn img {
   width: 16px;
   height: 16px;
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: capitalize;
-  color: white;
+.status-save-btn:hover {
+  transform: scale(1.1);
 }
 
-.status-badge.status-pending {
-  background-color: #d97706;
+.status-save-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
 }
 
-.status-badge.status-approved {
+.status-select.status-approved {
   background-color: #059669;
 }
 
-.status-badge.status-rejected {
+.status-select.status-rejected {
   background-color: #dc2626;
+}
+
+.version-navigation {
+  display: flex !important;
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.version-navigation .version-btn img {
+  width: 12px;
+  height: 12px;
+}
+
+.version-navigation .version-btn {
+  margin: 0px;   
+}
+
+.version-navigation .version-text {
+  margin: 0 8px;
+}
+
+.version-note {
+  font-size: 0.85em;
 }
 
 /* Responsive adjustments */
@@ -400,20 +395,35 @@ body {
   display: grid;
   grid-template-columns: 200px 1fr;
   width: 100%;
-  min-height: 60px;
+  min-height: 40px;
 }
 
 .field-label {
   display: flex;
   align-items: flex-start;
   padding: 16px 20px;
+  white-space: pre-line;
 }
 
 .field-value {
   display: flex;
   align-items: flex-start;
   padding: 16px 20px;
+  white-space: pre-line;
 }
+
+.field-value p
+.field-hint p {
+  white-space: pre-line;
+  margin: 0;
+  margin-bottom: 1em;
+}
+
+.field-value p:last-child
+.field-hint p:last-child {
+  margin-bottom: 0;
+}
+
 
 /* ============================================= */
 /* PROJECT FOOTER CONTAINER */
@@ -481,8 +491,8 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-bottom: 32px;
-  padding: 24px;
+  margin-bottom: 12px;
+  padding: 12px;
 }
 
 .edit-form .field-label {
@@ -501,6 +511,7 @@ body {
   color: #6b7280;
   margin-bottom: 12px;
   line-height: 1.5;
+  white-space: pre-line;
 }
 
 .form-control {
@@ -513,6 +524,7 @@ body {
   line-height: 1.5;
   background-color: #ffffff;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  font-family: inherit;
 }
 
 .form-control:focus {
@@ -528,6 +540,8 @@ body {
 textarea.form-control {
   min-height: 120px;
   resize: vertical;
+  font-size: 16px;
+  font-family: inherit;
 }
 
 .radio-group {
@@ -540,13 +554,12 @@ textarea.form-control {
 .radio-option {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 12px; 
 }
 
 .radio-option input[type="radio"] {
-  width: 16px;
-  height: 16px;
-  margin: 0;
+  margin-right: 20px;
 }
 
 .radio-option label {
@@ -595,15 +608,6 @@ textarea.form-control {
   background-color: #f4c4bc;
 }
 
-.btn-secondary {
-  background-color: #6b7280;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #4b5563;
-}
-
 .send-btn {
   background: none;
   border: none;
@@ -615,35 +619,32 @@ textarea.form-control {
   height: 24px;
 }
 
-.version-btn-left,
-.version-btn-right {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
+.account-details {
+  margin-bottom: 48px; 
+}
+
+.change-password {
+  margin-bottom: 24px; 
+}
+
+.account-details h4,
+.change-password h4 {
+  font-size: 18px;
   font-weight: 600;
-  transition: all 0.15s ease-in-out;
-  cursor: pointer;
-  z-index: 100;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  margin-top: 0;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
 }
-
-.version-btn-left {
-  left: 100px;
-}
-
-.version-btn-right {
-  right: 100px;
-}
-
 
 /* ============================================= */
 /* RESPONSIVE BREAKPOINTS */
 /* ============================================= */
+
+.field-row .account-details {
+  margin-bottom: 24px;
+}
 
 @media (max-width: 1024px) {
   .project-content {

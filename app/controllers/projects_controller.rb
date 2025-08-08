@@ -9,14 +9,20 @@ def show
     redirect_to course_path(@course), alert: "Project not found or access denied." and return
   end
 
-  @instances = @project.project_instances.order(version: :desc)
+  @instances = @project.project_instances.order(version: :asc)
   @owner = @project.ownership&.owner
   @status = @project.status
   @comments = @project.comments
   @new_comment = Comment.new
 
 
-  @type = @project.ownership&.ownership_type
+  user_type = @project.ownership&.ownership_type
+
+  if user_type == "lecturer"
+    @type = "topic"
+  else
+    @type = "proposal"
+  end
 
   @lecturers = @course.enrolments.where(role: [:lecturer, :coordinator]).includes(:user).map(&:user)
 
@@ -28,26 +34,34 @@ def show
   end
 
 
-  # Determine which version to show (default: newest, i.e., index 0)
-  index = params[:version].to_i
-  index = 0 if index >= @instances.size || index < 0
+  # Determine which version to show (default: newest, i.e., array length - 1)
 
-  @current_instance = @instances[index]
+  if !params[:version].blank?
+    @index = params[:version].to_i
+  else
+    @index = @instances.size
+  end
+
+  if @index <= 0 || @index > @instances.size
+    @index = @instances.size
+  end
+
+  @current_instance = @instances[@index - 1]
 
   @fields = @current_instance.project_instance_fields.includes(:project_template_field)
 
-  @comments = @project.comments
+  @comments = @project.comments.where(project_version_number: @index)
   @new_comment = Comment.new
 
 end
 
 def change_status
-
-  if @project.supervisor == current_user 
+  if @project.supervisor == current_user
     new_status = params[:status]
 
     if Project.statuses.key?(new_status)
-      @project.update(status: new_status)
+      @project.project_instances.last.update(status: new_status)
+
       redirect_to course_project_path(@course, @project), notice: "Status updated to #{new_status.humanize}."
     else
       redirect_to course_project_path(@course, @project), notice: "Status updated."
@@ -60,24 +74,26 @@ end
 
 def edit
 
-  if @project.status == "pending"
-    @instance = @project.project_instances.last || @project.project_instances.build
-  elsif @project.status == "rejected"
-    # Create a new version
-    version = @project.project_instances.maximum(:version).to_i + 1
-    @instance = @project.project_instances.build(version: version, created_by: current_user)
-  else
-    redirect_to course_project_path(@course, @project), alert: "This project cannot be edited."
-    return
-  end
-
-  # Exclude lecturer-only fields (optional)
+  @instance = @project.project_instances.last || @project.project_instances.build
+  # Exclude lecturer-only fields 
   @template_fields = @course.project_template.project_template_fields.where.not(applicable_to: :topics)
+
+  @existing_values = @instance.project_instance_fields.each_with_object({}) do |f, h|
+    h[f.project_template_field_id] = f.value
+  end
 end
 
 def update
-  if @project.status == "rejected"
-    version = @project.project_instances.maximum(:version).to_i + 1
+  has_supervisor_comment = Comment.where(
+    project: @project,
+    project_version_number: @project.project_instances.count,
+    user_id: @project.supervisor
+  ).exists?
+
+  if @project.status == "approved"
+    return
+  elsif @project.status == "rejected" || @project.status == "redo" || (@project.status == "pending" && has_supervisor_comment)
+    version = @project.project_instances.count + 1
     @instance = @project.project_instances.build(version: version, created_by: current_user)
   else
     @instance = @project.project_instances.last
@@ -89,15 +105,28 @@ def update
 
   if @instance.save
     if params[:fields].present?
-      params[:fields].each do |field_id, value|
-        @instance.project_instance_fields.create!(
-          project_template_field_id: field_id,
-          value: value
-        )
+      begin
+        ActiveRecord::Base.transaction do
+          params[:fields].each do |field_id, value|
+            existing_field = ProjectInstanceField.find_by(
+              project_template_field_id: field_id,
+              project_instance: @instance
+            )
+
+            if existing_field
+              existing_field.update!(value: value)
+            else
+              @instance.project_instance_fields.create!(
+                project_template_field_id: field_id,
+                value: value
+              )
+            end
+          end
+        end
+      rescue StandardError => e
+        redirect_to course_project_path(@course, @project), alert: "Project update failed"
       end
     end
-
-    @project.update(status: :pending) if @project.status == "rejected"
 
     redirect_to course_project_path(@course, @project), notice: "Project updated successfully."
   else
@@ -109,24 +138,20 @@ end
 
 def new
   unless @is_student
-  redirect_to course_path(@course), alert: "You are not authorized"
-  return
+    redirect_to course_path(@course), alert: "You are not authorized"
+    return
+  end
+
+  enrolment = Enrolment.find_by(user: current_user, course: @course)
+  if enrolment && Project.exists?(enrolment: enrolment)
+    redirect_to course_path(@course), alert: "You already have a project."
+    return
+  end
+
+  @template_fields = @course.project_template.project_template_fields.where(applicable_to: [:proposals, :both])
 end
 
-enrolment = Enrolment.find_by(user: current_user, course: @course)
-if enrolment && Project.exists?(enrolment: enrolment)
-  redirect_to course_path(@course), alert: "You already have a project."
-  return
-end
-
-@template_fields = @course.project_template.project_template_fields.where(applicable_to: [:proposals, :both])
-
-
-  
-
-end
-
-
+#TODO: MAKE ENROLMENT POINT TO THE CORRECT SUPERVISOR
 def create
   @course = Course.find(params[:course_id])
   grouped = @course.grouped?
@@ -134,7 +159,7 @@ def create
 
   if grouped
     #Grouped project
-    group = current_user.project_groups.find_by(course_id: @course.id)
+    group = current_user.project_groups.find_by(course: @course)
 
     unless group
       redirect_to course_path(@course), alert: "You're not part of a project group." and return
@@ -153,7 +178,7 @@ def create
       ownership_type: :project_group
     )
 
-    @enrolment = Enrolment.find_or_create_by!(user: current_user, course: @course)
+    #@enrolment = Enrolment.find_or_create_by!(user: current_user, course: @course)
 
   else
     # Individual student project 
@@ -179,37 +204,37 @@ def create
   # Create project
   @project = Project.create!(
     course: @course,
-    enrolment: @enrolment,
+    enrolment: @enrolment, # TODO: point to lecturer enrolment
     ownership: @ownership
   )
 
 
-params[:fields]&.each do |field_id, value|
-  template_field = ProjectTemplateField.find(field_id)
-  if template_field.label.strip.downcase.include?("title")
-    title_value = value
+  params[:fields]&.each do |field_id, value|
+    template_field = ProjectTemplateField.find(field_id)
+    if template_field.label.strip.downcase.include?("title")
+      title_value = value
+    end
   end
-end
 
-#Create Instance
-@instance = @project.project_instances.create!(
-  version: 0,
-  title: title_value,
-  created_by: current_user
-)
-
-# Saves all fields to the instance
-params[:fields]&.each do |field_id, value|
-  template_field = ProjectTemplateField.find(field_id)
-
-  @instance.project_instance_fields.create!(
-    project_template_field: template_field,
-    value: value
+  #Create Instance
+  @instance = @project.project_instances.create!(
+    version: 1,
+    title: title_value,
+    created_by: current_user
   )
-end
+
+  # Saves all fields to the instance
+  params[:fields]&.each do |field_id, value|
+    template_field = ProjectTemplateField.find(field_id)
+
+    @instance.project_instance_fields.create!(
+      project_template_field: template_field,
+      value: value
+    )
+  end
 
 
-  redirect_to course_topics_path(@course), notice: "Project created!"
+  redirect_to course_projects_path(@course), notice: "Project created!"
 end
 
 def check_existing_project
@@ -223,13 +248,13 @@ end
 
 
 
-private 
-
 private
 
 # make sure that same logic in helpers/projects_helper.rb
 def access
   @course = Course.find(params[:course_id])
+
+  @is_student = @course.enrolments.exists?(user: current_user, role: :student)
 
   # Build the list of projects/topics visible to the current user:
   if @course.enrolments.exists?(user: current_user, role: :coordinator)
@@ -287,5 +312,3 @@ def access
   return redirect_to(course_path(@course), alert: "You are not authorized") unless authorized
 end
 end
-
-

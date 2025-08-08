@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   resource :session
   resources :passwords, param: :token
 
-  resources :courses, only: [:show, :new, :create] do
+  resources :courses, only: [:show, :new, :create, :destroy] do
     member do
       get 'add_students'
       post 'handle_add_students'
@@ -32,7 +32,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :topics, only: [:index, :show, :edit, :update, :create, :new] do
+    resources :topics, only: [:index, :show, :edit, :update, :create, :new, :destroy] do
       member do
         patch :change_status
       end
@@ -60,7 +60,7 @@ Rails.application.routes.draw do
       end
     end
 
-    resource :project_template, only: [:new, :create, :edit, :update, :show] 
+    resource :project_template, only: [:edit, :update, :show]
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

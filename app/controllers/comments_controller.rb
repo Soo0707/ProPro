@@ -4,41 +4,55 @@ class CommentsController < ApplicationController
 
   def create
     parent_project = Project.find(params[:project_id])
-    parent_course = Course.find(params[:course_id])
+    parent_course = parent_project.course
     type = parent_project.ownership&.ownership_type
+    version_number = parent_project.project_instances.count
 
     if Current.user.nil?
       return
     end
 
-    if !parent_course.grouped
-      unless Current.user == User.find(parent_project.ownership.owner_id) || Current.user == parent_project.supervisor || Current.user == parent_course.coordinator.user
-        return
-      end
-    else
-      group_members = ProjectGroup.find(parent_project.ownership.owner_id).project_group_members.map { |member| User.find(member.user_id) }
+    if version_number > parent_project.project_instances.count || version_number <= 0
+      return
+    end
 
-      unless group_members.includes? Current.user || Current.user == parent_project.supervisor || Current.user == parent_course.coordinator.user
-        return
+    whitelist = [parent_course.coordinator.user, parent_project.supervisor]
+
+    if type == "student"
+      if !parent_course.grouped
+        whitelist.push(parent_project.owner)
+      else
+        group_members = ProjectGroup.find(parent_project.ownership.owner_id).project_group_members
+
+        group_members.each do |group_member|
+          whitelist.push(group_member.user)
+        end
       end
+    elsif type == "lecturer"
+      whitelist.push(parent_project.owner)
+    end
+
+    unless whitelist.include? Current.user
+      return
     end
 
     Comment.create!(
       user: Current.user,
       project: parent_project,
-      text: params[:comment][:user_comment]
+      text: params[:comment][:user_comment],
+      project_version_number: version_number
       )
 
     if type == "student"
-      redirect_to course_project_path(parent_course, parent_project)
+      redirect_to course_project_path(parent_course, parent_project, version: version_number)
     else
-      redirect_to course_topic_path(parent_course, parent_project)
+      redirect_to course_topic_path(parent_course, parent_project, version: version_number)
     end
   end
 
   def soft_delete
     parent_project = Project.find(params[:project_id])
-    parent_course = Course.find(params[:course_id])
+    parent_course = parent_project.course
     type = parent_project.ownership&.ownership_type
     comment = Comment.find(params[:id])
 
@@ -51,12 +65,9 @@ class CommentsController < ApplicationController
     end
 
     if type == "student"
-      redirect_to course_project_path(parent_course, parent_project)
+      redirect_to course_project_path(parent_course, parent_project, version: comment.project_version_number)
     else
-      redirect_to course_topic_path(parent_course, parent_project)
+      redirect_to course_topic_path(parent_course, parent_project, version: comment.project_version_number)
     end
-
   end
 end
-
-

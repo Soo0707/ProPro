@@ -7,30 +7,11 @@
    <title><%= @current_instance.title %> - Project Details</title>
  </head>
  <body>
-   <% current_version = params[:version].to_i %>
-   <% oldest_version = @instances.size - 1 %>
-   <% latest_version = 0 %>
+   <% current_version = @index %>
+   <% oldest_version = 1 %>
+   <% latest_version = @instances.size %>
    <main id="project">
      <div class="project-layout">
-       <% if current_version < oldest_version %>
-         <%= link_to course_project_path(@course, @project, version: current_version + 1), class: "version-btn version-btn-left" do %>
-           <span class="arrow"><%= image_tag("arrow_back.svg") %></span>
-         <% end %>
-       <% else %>
-         <span class="version-btn version-btn-left disabled">
-           <span class="arrow"><%= image_tag("arrow_back.svg") %></span>
-         </span>
-       <% end %>
-       
-       <% if current_version > latest_version %>
-         <%= link_to course_project_path(@course, @project, version: current_version - 1), class: "version-btn version-btn-right" do %>
-           <span class="arrow"><%= image_tag("arrow_forward.svg") %></span>
-         <% end %>
-       <% else %>
-         <span class="version-btn version-btn-right disabled">
-           <span class="arrow"><%= image_tag("arrow_forward.svg") %></span>
-         </span>
-       <% end %>
 
        <section class="project-content">
          <%= render 'project_header',
@@ -41,6 +22,7 @@
                     members: @members,
                     current_version: current_version,
                     latest_version: latest_version,
+                    oldest_version: oldest_version,
                     instances: @instances %>
          <%= render 'project_actions',
                     members: @members,
@@ -53,7 +35,9 @@
                     comments: @comments,
                     new_comment: @new_comment,
                     course: @course,
-                    project: @project %>
+                    project: @project,
+                    current_version: current_version,
+                    latest_version: latest_version %>
          <%= render 'project_fields', fields: @fields %>
          <footer class="project-footer">
            <%= link_to "← Back to Projects", course_path(@course) %>

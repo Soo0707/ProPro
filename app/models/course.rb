@@ -1,11 +1,8 @@
 class Course < ApplicationRecord
-    has_many :enrolments
-    has_many :projects
-    has_many :project_groups
-    has_one :project_template
-
-    has_many :projects
-    has_one :project_template
+    has_many :enrolments, dependent: :destroy
+    has_many :projects, dependent: :destroy
+    has_many :project_groups, dependent: :destroy
+    has_one :project_template, dependent: :destroy
 
 
     attribute :student_access, :integer, default: :no_restriction
@@ -15,6 +12,7 @@ class Course < ApplicationRecord
 
     attribute :supervisor_projects_limit, :integer, default: 1
     attribute :starting_week, :integer, default: 1
+    attribute :number_of_updates, :integer
 
 
     enum :student_access, { owner_only: 0, own_lecturer_only: 1, no_restriction: 2 }

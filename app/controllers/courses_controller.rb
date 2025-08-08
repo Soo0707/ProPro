@@ -3,12 +3,12 @@ require "set"
 require "securerandom"
 
 class CoursesController < ApplicationController
-    before_action :disallow_noncoordinator_requests, only: [ :add_students, :handle_add_students, :add_lecturers, :handle_add_lecturers, :settings, :handle_settings ]
+    before_action :disallow_noncoordinator_requests, only: [ :add_students, :handle_add_students, :add_lecturers, :handle_add_lecturers, :settings, :handle_settings, :destroy ]
     before_action :check_staff, only: [ :new, :create ]
+    before_action :access_topics, only: :show
+
 
     def show
-    
-      @course = Course.find(params[:id])
       
       if @course.grouped?
         @group = current_user.project_groups.find_by(course: @course)
@@ -37,14 +37,6 @@ class CoursesController < ApplicationController
       @description = @course.course_description
       @student_list = @course.enrolments.where(role: :student).includes(:user).map(&:user)
       @lecturers = @course.enrolments.where(role: :lecturer).includes(:user).map(&:user)
-      
-      # coordinator topics view
-      if @course.enrolments.exists?(user: current_user, role: :coordinator)
-        @topic_list = @course.projects.joins(:ownership).where(ownerships: { ownership_type: :lecturer })
-      else
-        @topic_list = @course.projects.joins(:ownership).where(ownerships: { ownership_type: :lecturer }).where(status: :approved)
-      end
-
       
       
       projects_ownerships = Project.joins(:ownership)
@@ -168,7 +160,6 @@ class CoursesController < ApplicationController
       begin
         ActiveRecord::Base.transaction do
           if !@new_course.save
-            render :new, status: :unprocessable_entity
             raise StandardError, "Course failed verification"
           end
 
@@ -184,11 +175,15 @@ class CoursesController < ApplicationController
             role: :lecturer
           )
 
+          default_template = @new_course.build_project_template
 
+          if !default_template.save
+            raise StandardError, "Template creation failed"
+          end
         end
       rescue StandardError => e
         @new_course.destroy
-        redirect_back_or_to "/", alert: "Course creation failed"
+        render :new, status: :unprocessable_entity
         return
       end
 
@@ -205,7 +200,7 @@ class CoursesController < ApplicationController
       require_coordinator_approval: params[:course][:require_coordinator_approval],
       starting_week: params[:course][:starting_week],
       use_progress_updates: params[:course][:use_progress_updates],
-      number_of_updates: params[:course][:number_of_progress_updates],
+      number_of_updates: params[:course][:number_of_updates],
       lecturer_access: params[:course][:lecturer_access],
       student_access: params[:course][:student_access]
     )
@@ -218,6 +213,11 @@ class CoursesController < ApplicationController
     redirect_to settings_course_path(@course), notice: "Course successfully updated"
   end
 
+  def destroy
+    @course.destroy
+    redirect_to "/"
+  end
+
   private
   def students_with_projects
       Project.joins(:ownership).where(course_id: @course.id, ownerships: { ownership_type: :student, owner_type: "User" })
@@ -228,8 +228,8 @@ class CoursesController < ApplicationController
   def disallow_noncoordinator_requests
     @course = Course.find(params[:id])
 
-    if Current.user.is_staff && !Current.user.courses.include?(@course)
-      redirect_back_or_to "/", alert: "Permission denied"
+    unless Current.user == @course.coordinator.user
+      redirect_back_or_to "/", alert: "Access denied"
       return
     end
   end
@@ -394,7 +394,8 @@ class CoursesController < ApplicationController
           email_address: email,
           password: SecureRandom.base64(24),
           has_registered: false,
-          is_staff: true
+          is_staff: true,
+          username: "Lecturer-#{SecureRandom.hex(2)}"
         )
 
         new_otp_instance = Otp.create!(
@@ -413,4 +414,45 @@ class CoursesController < ApplicationController
       )
     end
   end
+
+
+def access_topics
+  @course                 = Course.find(params[:id])
+  @current_user_enrolment = @course.enrolments.find_by(user: current_user)
+
+  lt = Ownership.ownership_types[:lecturer]
+
+  # 1) Coordinator: sees all topics (any status)
+  if @current_user_enrolment&.coordinator?
+    @topic_list = @course.projects
+                         .joins(:ownership)
+                         .where(ownerships: { ownership_type: lt })
+
+  # Lecturer: sees their own topics (any status)
+  # plus other lecturers’ only if approved
+  elsif @current_user_enrolment&.lecturer?
+    own = @course.projects
+                 .joins(:ownership)
+                 .where(ownerships: {
+                   owner_type:     "User",
+                   owner_id:       current_user.id,
+                   ownership_type: lt
+                 })
+
+    approved = @course.projects
+                      .joins(:ownership)
+                      .where(ownerships: { ownership_type: lt },
+                             status:     :approved)
+
+    @topic_list = own.or(approved)
+
+  #Students: see only approved topics
+  else
+    @topic_list = @course.projects
+                         .joins(:ownership)
+                         .where(ownerships: { ownership_type: lt },
+                                status:     :approved)
+  end
 end
+end
+
