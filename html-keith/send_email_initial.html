@@ -26,7 +26,7 @@
             background: #f8f9fa;
             border-radius: 16px;
             width: 100%;
-            max-width: 600px;
+            max-width: 400px;
             min-height: 500px;
             margin: 0 auto;
             display: flex;
@@ -46,6 +46,7 @@
         }
 
         .main {
+            width: 100%;
             margin: 0 auto;
             padding: 24px 24px 24px 24px;
         }
@@ -85,32 +86,28 @@
 <body>
     <div class="container">
         <div class="topbar">
-            <h1>Activate Your Account on ProPro!</h1>
+            <h1>Welcome to ProPro</h1>
         </div>
         <div class="main">
             <p>
-                You have been invited and enrolled into a ProPro course. ProPro is a web app for <b>Pro</b>ject <b>Pro</b>posals and <b>Pro</b>gress monitoring. It is ideal for educators managing student projects where students propose their ideas for approval!<br><br>
-                You have been added to a course via your email address. An account have automatically been created for you. To claim your account, visit:
-            </p>
-            <p>
-                <a href="https://propro.click/user/new_staff?token=<%= @otp_token %>">https://propro.click/user/new_staff?token=<%= @otp_token %></a>
-            </p>
-            <p>
-                and enter the one-time password shown below:
+                A staff member has invited and enrolled you into a ProPro course, your OTP is:
             </p>
             <br>
             <div class="otp">
                 <strong><%= @otp %></strong>
             </div>
             <br>
-            <p><strong>This is for <b>YOUR</b> account activation only. Do not share this information with a third-party.</strong></p><br>
             <p>
-                Welcome to ProPro and we hope you have a great project experience!<br>
-                - ProPro Team
+
+            To claim your account visit <a href="https://propro.click/user/new_staff?token=<%= @otp_token %>">this link</a>
+
             </p>
+            <br>
+            <p><strong>Do not share this information with a third-party.</strong></p>
         </div>
     </div>
 </body>
 
 
 </html>
+
