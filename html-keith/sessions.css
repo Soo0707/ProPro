@@ -1,17 +1,18 @@
 body {
     background-color: #efefef;
     font-family: 'Inter', sans-serif;
+    align-content: center;
 }
 
 .main {
-    align-self: center;
-    align-items: center;
+    align-content: center;
     width: 60%;
     margin: 300px;
     margin-top: 150px;
 }
 
 .container {
+    align-self: center;
     border-radius: 10px;
     width: 100%;
     padding: 15px;
