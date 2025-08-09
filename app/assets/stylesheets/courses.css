@@ -163,6 +163,14 @@ ul.breadcrumb li b {
     flex: auto;
 }
 
+.signin_main {
+    align-self: center;
+    align-items: center;
+    width: 60%;
+    margin: 300px;
+    margin-top: 150px;
+}
+
 .remindergap {
     margin-top: 20px;
     margin-bottom: 20px;
@@ -716,6 +724,7 @@ textarea {
     box-sizing: border-box;
     font-size: 10px;
     margin-top: 10px;
+    font-family: 'Inter', sans-serif;
 }
 
 label {

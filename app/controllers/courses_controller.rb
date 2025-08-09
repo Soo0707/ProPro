@@ -48,20 +48,23 @@ class CoursesController < ApplicationController
       @incoming_proposals = @course.projects.pending_for_lecturer(@current_user_enrolment)
     end
       
-      
-      projects_ownerships = Project.joins(:ownership)
-      .where(course_id: @course.id, ownerships: { ownership_type: :student, owner_type: "User" })
-      .where.not(status: :rejected)
+      @lecturer_capacity_info = {}
+      @lecturers.each do |lecturer|
+        @lecturer_capacity_info[lecturer.id] = lecturer_capacity_info(lecturer, @course)
+      end
+
+      projects_ownerships = @course.projects.approved_student_proposals
+      .joins(:ownership)
+      .where(ownerships: { owner_type: "User" })
       .pluck("ownerships.owner_id")
-      
+  
       @students_with_projects = @student_list.select do |student|
         projects_ownerships.include?(student.id)
       end 
-    
+
       @students_without_projects = @student_list.reject do |student|
         projects_ownerships.include?(student.id)
       end
-
     end
 
     def add_students
@@ -95,7 +98,7 @@ class CoursesController < ApplicationController
         return
       end
 
-      send_emails(unregistered_lecturers, true)
+      send_emails(unregistered_lecturers)
 
       redirect_to add_students_course_path(@course)
     end
@@ -151,7 +154,7 @@ class CoursesController < ApplicationController
         return
       end
 
-      send_emails(unregistered_students, false)
+      send_emails(unregistered_students)
       redirect_to settings_course_path(@course)
     end
 
@@ -231,9 +234,7 @@ class CoursesController < ApplicationController
 
   private
   def students_with_projects
-      Project.joins(:ownership).where(course_id: @course.id, ownerships: { ownership_type: :student, owner_type: "User" })
-      .where.not(status: :rejected)
-      .pluck("ownerships.owner_id")
+    @course.projects.approved_student_proposals.joins(:ownership).where(ownerships: { owner_type: "User" }).pluck("ownerships.owner_id")
   end
 
   def disallow_noncoordinator_requests
@@ -304,7 +305,14 @@ class CoursesController < ApplicationController
             token: SecureRandom.uuid
           )
 
-        unregistered_students.add({:email_address => group_member[:email_address], :otp_token => new_otp_instance.token, :otp => new_otp_instance.otp})
+        unregistered_students.add(
+          {
+           :email_address => group_member[:email_address],
+           :otp_token => new_otp_instance.token,
+           :otp => new_otp_instance.otp,
+           :is_staff => false
+          }
+        )
         else
           new_user.update!(student_id: group_member[:student_id])
         end
@@ -329,18 +337,17 @@ class CoursesController < ApplicationController
     end
   end
 
-  def send_emails(unregistered_users, is_staff)
-    if is_staff
-      unregistered_users.each do |user|
-        GeneralMailer.with(email_address: user[:email_address], otp_token: user[:otp_token], otp: user[:otp]).send_lecturer_invite.deliver_now
-      end
-    else
-      unregistered_users.each do |user|
-        GeneralMailer.with(email_address: user[:email_address], otp_token: user[:otp_token], otp: user[:otp]).send_student_invite.deliver_now
-      end
+  def send_emails(unregistered_users)
+    unregistered_users.each do |user|
+      GeneralMailer.with(
+        email_address: user[:email_address],
+        otp_token: user[:otp_token],
+        otp: user[:otp],
+        is_staff: user[:is_staff]
+      ).ProPro_Invite.deliver_now
     end
   end
-  
+
   def parse_csv_solo(csv_obj, columns_to_check)
     ret = Set[]
 
@@ -379,7 +386,14 @@ class CoursesController < ApplicationController
           token: SecureRandom.uuid
         )
 
-        unregistered_students.add({:email_address => student[:email_address], :otp_token => new_otp_instance.token, :otp => new_otp_instance.otp})
+        unregistered_students.add(
+          {
+           :email_address => student[:email_address],
+           :otp_token => new_otp_instance.token,
+           :otp => new_otp_instance.otp,
+           :is_staff => false
+          }
+        )
       else
         new_user.update!(student_id: student[:student_id])
       end
@@ -415,7 +429,14 @@ class CoursesController < ApplicationController
           token: SecureRandom.uuid
         )
 
-        unregistered_lecturers.add({:email_address => email, :otp_token => new_otp_instance.token, :otp => new_otp_instance.otp})
+        unregistered_lecturers.add(
+          {
+           :email_address => email,
+           :otp_token => new_otp_instance.token,
+           :otp => new_otp_instance.otp,
+           :is_staff => true
+          }
+        )
       end
 
       new_enrolment = Enrolment.find_or_create_by!(
@@ -465,5 +486,35 @@ def access_topics
                                 status:     :approved)
   end
 end
+
+def lecturer_approved_proposals_count(lecturer, course)
+  lecturer_enrolment = course.enrolments.find_by(user: lecturer, role: :lecturer)
+  return 0 unless lecturer_enrolment
+  
+  course.projects.approved_for_lecturer(lecturer_enrolment).count
+end
+
+def lecturer_pending_proposals_count(lecturer, course)
+  lecturer_enrolment = course.enrolments.find_by(user: lecturer, role: :lecturer)
+  return 0 unless lecturer_enrolment
+  
+  course.projects.pending_for_lecturer(lecturer_enrolment).count
+end
+
+def lecturer_capacity_info(lecturer, course)
+  approved_count = lecturer_approved_proposals_count(lecturer, course)
+  pending_count = lecturer_pending_proposals_count(lecturer, course)
+  max_capacity = course.supervisor_projects_limit
+  
+  {
+    approved_proposals: approved_count,         
+    pending_proposals: pending_count,             
+    total_proposals: approved_count + pending_count, 
+    max_capacity: max_capacity,
+    remaining_capacity: [max_capacity - approved_count, 0].max,
+    is_at_capacity: approved_count >= max_capacity,
+  }
+end
+
 end
 
