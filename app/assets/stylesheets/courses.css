@@ -724,6 +724,7 @@ textarea {
     box-sizing: border-box;
     font-size: 10px;
     margin-top: 10px;
+    font-family: 'Inter', sans-serif;
 }
 
 label {
