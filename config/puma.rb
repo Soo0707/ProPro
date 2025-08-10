@@ -57,5 +57,7 @@ persistent_timeout(95)
 # Remove this line when https://github.com/puma/puma/issues/3487 is closed, and the fix is released
 enable_keep_alives(false) if respond_to?(:enable_keep_alives)
 
+plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
+
 rackup      DefaultRackup if defined?(DefaultRackup)
 environment ENV['RACK_ENV'] || 'development'
