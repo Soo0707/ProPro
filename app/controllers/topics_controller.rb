@@ -98,12 +98,8 @@ def edit
     return
   end
 =end
-  if @instance
-    @existing_values = @instance.project_instance_fields.each_with_object({}) do |f, h|
-      h[f.project_template_field_id] = f.value
-    end
-  else
-    {}
+  @existing_values = @instance.project_instance_fields.each_with_object({}) do |f, h|
+    h[f.project_template_field_id] = f.value
   end
   @template_fields = @course.project_template.project_template_fields.where(applicable_to: [:topics, :both])
 end
@@ -125,7 +121,7 @@ def update
   status = @course.require_coordinator_approval ? "pending" : "approved"
   if @project.status == "rejected" || @project.status == "redo" || (@project.status == "pending" && has_coordinator_comment)
     version = @project.project_instances.count + 1
-    @instance = @project.project_instances.build(version: version, created_by: current_user, status: status)
+    @instance = @project.project_instances.build(version: version, created_by: current_user, status: status, enrolment: @project.supervisor)
   else
     @instance = @project.project_instances.last
   end
