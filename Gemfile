@@ -1,4 +1,5 @@
 source "https://rubygems.org"
+ruby "3.4.4"
 
 gem "csv"
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
@@ -33,7 +34,7 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
-#gem "kamal", require: false
+# gem "kamal", require: false
 
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
