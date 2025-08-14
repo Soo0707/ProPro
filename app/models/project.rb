@@ -7,7 +7,9 @@ class Project < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :progress_updates, dependent: :destroy
   delegate :owner, to: :ownership
-  has_many :topic_responses, dependent: :destroy
+  #has_many :topic_responses, dependent: :destroy
+  has_many :proposed_topic_instances, class_name: "ProjectInstance", foreign_key: "source_topic_id"
+
 
   # DO NOT WRITE TO STATUS IN PROJECTS, IT'S ONLY MEANT TO KEEP TRACK OF THE STATUS OF THE LATEST PROJECT INSTANCE
   # write to the latest project instance instead
@@ -51,6 +53,22 @@ class Project < ApplicationRecord
     else
       [ ownership.user ]
     end
+  end
+
+  def current_instance
+    if project_instances.column_names.include?("version")
+      project_instances.order(version: :desc, created_at: :desc).first
+    else
+      project_instances.order(created_at: :desc).first
+    end
+  end
+
+  def current_status
+    (current_instance&.status || self.status || :not_submitted).to_s
+  end
+
+  def current_title
+    current_instance&.title || self.title
   end
 
 end
