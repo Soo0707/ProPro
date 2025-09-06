@@ -1,9 +1,11 @@
 class UserController < ApplicationController
   allow_unauthenticated_access only: %i[ new_staff new_student create ]
   def new_student
+    @email = Otp.find_by(token: params[:token]).user.email_address
   end
 
   def new_staff
+    @email = Otp.find_by(token: params[:token]).user.email_address
   end
 
   def create
@@ -112,3 +114,4 @@ class UserController < ApplicationController
     redirect_to user_profile_path, notice: "Profile updated successfully"
   end
 end
+

@@ -14,6 +14,21 @@ class CoursesController < ApplicationController
       @lecturers = @course.enrolments.where(role: :lecturer).includes(:user).map(&:user)
       @group_list = @course.grouped? ? @course.project_groups.to_a : []
       @lecturer_enrolment = @course.enrolments.find_by(user: current_user, role: :lecturer)
+
+      # SET STUDENT PROJECTS
+      projects_ownerships = @course.projects.not_lecturer_owned.approved
+      .joins(:ownership)
+      .where(ownerships: { owner_type: "User" })
+      .pluck("ownerships.owner_id")
+  
+      @students_with_projects = @student_list.select do |student|
+        projects_ownerships.include?(student.id)
+      end 
+
+      @students_without_projects = @student_list.reject do |student|
+        projects_ownerships.include?(student.id)
+      end
+
       @filtered_group_list   = filtered_group_list
       @filtered_student_list = filtered_student_list
       @my_student_projects = []
@@ -35,36 +50,18 @@ class CoursesController < ApplicationController
       @current_status = @project&.current_status || "not_submitted"
 
     if @current_user_enrolment&.coordinator?
-      if @lecturer_enrolment
-        @my_student_projects = @course.projects.approved_for_lecturer(@lecturer_enrolment)
-        @incoming_proposals = @course.projects.pending_student_proposals.where(enrolment: @lecturer_enrolment)
-      else
-        @my_student_projects = @course.projects.approved_student_proposals
-        @incoming_proposals = @course.projects.pending_student_proposals
-      end
+      supervisor_enrolment = @lecturer_enrolment || @current_user_enrolment
+      @my_student_projects = @course.projects.student_projects_for_lecturer(supervisor_enrolment).approved
+      @incoming_proposals = @course.projects.not_lecturer_owned.where(enrolment: supervisor_enrolment).proposals
     elsif @current_user_enrolment&.lecturer?
-      @my_student_projects = @course.projects.approved_for_lecturer(@current_user_enrolment)
-      @incoming_proposals = @course.projects.pending_student_proposals.where(enrolment: @current_user_enrolment)
+      @my_student_projects = @course.projects.student_projects_for_lecturer(@current_user_enrolment).approved
+      @incoming_proposals = @course.projects.not_lecturer_owned.where(enrolment: @current_user_enrolment).proposals
     end
     
       # SET LECTURER CAPACITY INFO
       @lecturer_capacity_info = {}
       @lecturers.each do |lecturer|
         @lecturer_capacity_info[lecturer.id] = lecturer_capacity_info(lecturer, @course)
-      end
-
-      # SET STUDENT PROJECTS
-      projects_ownerships = @course.projects.approved_student_proposals
-      .joins(:ownership)
-      .where(ownerships: { owner_type: "User" })
-      .pluck("ownerships.owner_id")
-  
-      @students_with_projects = @student_list.select do |student|
-        projects_ownerships.include?(student.id)
-      end 
-
-      @students_without_projects = @student_list.reject do |student|
-        projects_ownerships.include?(student.id)
       end
 
     if request.headers['HX-Request'] && params[:status_filter].present?
@@ -251,6 +248,8 @@ class CoursesController < ApplicationController
     @participant_id = params[:participant_id]
     @course = Course.find(params[:id])
 
+    @grouped = @course.grouped
+
     if @participant_type == 'group'
       @group = @course.project_groups.find(@participant_id)
       @members = @group.project_group_members.includes(:user)
@@ -259,12 +258,13 @@ class CoursesController < ApplicationController
     end
 
     @latest_instance = @project&.project_instances&.order(:version)&.last
+    Rails.logger.info "PROFILE PARAMS: #{params.slice(:id, :participant_id, :participant_type).inspect}"
   end
     
 
   private
   def students_with_projects
-    @course.projects.approved_student_proposals.joins(:ownership).where(ownerships: { owner_type: "User" }).pluck("ownerships.owner_id")
+    @course.projects.not_lecturer_owned.approved.joins(:ownership).where(ownerships: { owner_type: "User" }).pluck("ownerships.owner_id")
   end
 
   def disallow_noncoordinator_requests
@@ -521,14 +521,14 @@ def lecturer_approved_proposals_count(lecturer, course)
   lecturer_enrolment = course.enrolments.find_by(user: lecturer, role: :lecturer)
   return 0 unless lecturer_enrolment
   
-  course.projects.approved_for_lecturer(lecturer_enrolment).count
+  course.projects.student_projects_for_lecturer(lecturer_enrolment).approved.count
 end
 
 def lecturer_pending_proposals_count(lecturer, course)
   lecturer_enrolment = course.enrolments.find_by(user: lecturer, role: :lecturer)
   return 0 unless lecturer_enrolment
   
-  course.projects.pending_and_redo_for_lecturer(lecturer_enrolment).count
+  course.projects.student_projects_for_lecturer(lecturer_enrolment).pending_redo.count
 end
 
 def lecturer_capacity_info(lecturer, course)
