@@ -56,6 +56,11 @@ Rails.application.routes.draw do
     end
   
     resources :lecturers, only: [:index, :show] do
+      member do
+        patch 'promote_to_coordinator'
+        patch 'demote_to_lecturer'
+      end
+      
       resources :topics, only: [:index, :show, :edit, :update, :create, :new] do
         member do
           patch :change_status
@@ -66,7 +71,6 @@ Rails.application.routes.draw do
             patch 'soft_delete'
           end
         end
-
       end
     end
 
