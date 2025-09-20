@@ -45,10 +45,9 @@ class ProjectTemplatesController < ApplicationController
   end
 
   def only_authorise_coordinator
-    unless Current.user == @course.coordinator.user
+    unless @course.coordinators.pluck(:id).include? Current.user.id
       redirect_back_or_to "/", alert: "Not authorised"
       return
     end
   end
-
 end
