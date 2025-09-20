@@ -13,9 +13,6 @@ class MoveCommentsToPolymorphicLocation < ActiveRecord::Migration[8.0]
           comment.update!(location: project_instance)
         elsif topic_instance
           comment.update!(location: topic_instance)
-        else
-          Rails.logger.info "project_id #{comment.project_id} version: #{comment.project_version_number}"
-          Rails.logger.info "project_instance: #{project_instance.inspect}, topic_instance: #{topic_instance.inspect}"
         end
       end
     end

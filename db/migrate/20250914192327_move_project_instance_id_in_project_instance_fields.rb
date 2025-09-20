@@ -15,6 +15,7 @@ class MoveProjectInstanceIdInProjectInstanceFields < ActiveRecord::Migration[8.0
         elsif project_instance
           project_instance_field.update!(instance: project_instance)
         else
+          Rails.logger.info "id: #{project_instance_field.project_instance_id}"
           raise StandardError
         end
       end
