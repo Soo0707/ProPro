@@ -16,7 +16,6 @@ class MoveCommentsToPolymorphicLocation < ActiveRecord::Migration[8.0]
         else
           Rails.logger.info "project_id #{comment.project_id} version: #{comment.project_version_number}"
           Rails.logger.info "project_instance: #{project_instance.inspect}, topic_instance: #{topic_instance.inspect}"
-          raise StandardError
         end
       end
     end
