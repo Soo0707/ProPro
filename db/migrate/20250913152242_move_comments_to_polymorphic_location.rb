@@ -16,7 +16,7 @@ class MoveCommentsToPolymorphicLocation < ActiveRecord::Migration[8.0]
       end
 
       borked_topics.each do |topic|
-        topic.topic_instances.each do |topic_instance|
+        topic.topic_instances.sort_by(&:created_at).reverse.each do |topic_instance|
           topic_instance.version += 1
           topic_instance.save!
         end
