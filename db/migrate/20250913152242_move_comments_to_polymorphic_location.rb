@@ -17,8 +17,11 @@ class MoveCommentsToPolymorphicLocation < ActiveRecord::Migration[8.0]
 
       borked_topics.each do |topic|
         topic.topic_instances.each do |topic_instance|
+          Rails.logger.info "before #{topic_instance.version}"
           topic_instance.version += 1
+          Rails.logger.info "after #{topic_instance.version}"
         end
+        Rails.logger.info "borked #{topic.inspect}"
       end
 
       Comment.find_each do |comment|
